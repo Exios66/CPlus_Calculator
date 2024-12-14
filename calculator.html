@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Scientific Calculator</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-color: #ecf0f1;
+            --text-color: #2c3e50;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .calculator {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 16px;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+        }
+
+        button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .dataset-input {
+            margin-bottom: 10px;
+        }
+
+        .dataset-values {
+            min-height: 100px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .error {
+            color: var(--accent-color);
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .calculator {
+                padding: 20px;
+            }
+
+            .tab {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="calculator">
+            <h1>Advanced Scientific Calculator</h1>
+            
+            <div class="tabs">
+                <button class="tab active" data-tab="basic">Basic Operations</button>
+                <button class="tab" data-tab="advanced">Advanced Functions</button>
+                <button class="tab" data-tab="statistical">Statistical Analysis</button>
+                <button class="tab" data-tab="psychometric">Psychometric Tools</button>
+            </div>
+
+            <!-- Basic Operations -->
+            <div class="tab-content active" id="basic">
+                <div class="input-group">
+                    <label for="basic-operation">Operation:</label>
+                    <select id="basic-operation">
+                        <option value="add">Addition (+)</option>
+                        <option value="subtract">Subtraction (-)</option>
+                        <option value="multiply">Multiplication (*)</option>
+                        <option value="divide">Division (/)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="num1">First Number:</label>
+                    <input type="number" id="num1" step="any">
+                </div>
+                <div class="input-group">
+                    <label for="num2">Second Number:</label>
+                    <input type="number" id="num2" step="any">
+                </div>
+                <button onclick="calculateBasic()">Calculate</button>
+            </div>
+
+            <!-- Advanced Functions -->
+            <div class="tab-content" id="advanced">
+                <div class="input-group">
+                    <label for="advanced-operation">Function:</label>
+                    <select id="advanced-operation">
+                        <option value="power">Power</option>
+                        <option value="sqrt">Square Root</option>
+                        <option value="cbrt">Cube Root</option>
+                        <option value="sin">Sine</option>
+                        <option value="cos">Cosine</option>
+                        <option value="tan">Tangent</option>
+                        <option value="asin">Arc Sine</option>
+                        <option value="acos">Arc Cosine</option>
+                        <option value="atan">Arc Tangent</option>
+                        <option value="ln">Natural Logarithm</option>
+                        <option value="log10">Logarithm (base 10)</option>
+                        <option value="exp">Exponential</option>
+                        <option value="abs">Absolute Value</option>
+                        <option value="factorial">Factorial</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="advanced-input">Input Value:</label>
+                    <input type="number" id="advanced-input" step="any">
+                </div>
+                <div class="input-group" id="power-input" style="display: none;">
+                    <label for="exponent">Exponent:</label>
+                    <input type="number" id="exponent" step="any">
+                </div>
+                <button onclick="calculateAdvanced()">Calculate</button>
+            </div>
+
+            <!-- Statistical Analysis -->
+            <div class="tab-content" id="statistical">
+                <div class="input-group">
+                    <label for="statistical-operation">Analysis Type:</label>
+                    <select id="statistical-operation">
+                        <option value="descriptive">Descriptive Statistics</option>
+                        <option value="correlation">Correlation Analysis</option>
+                        <option value="normal-pdf">Normal Distribution (PDF)</option>
+                        <option value="normal-cdf">Normal Distribution (CDF)</option>
+                    </select>
+                </div>
+                <div class="dataset-input" id="dataset-single">
+                    <label>Dataset Values (one per line):</label>
+                    <textarea class="dataset-values" id="dataset1"></textarea>
+                </div>
+                <div class="dataset-input" id="dataset-double" style="display: none;">
+                    <label>Second Dataset Values (one per line):</label>
+                    <textarea class="dataset-values" id="dataset2"></textarea>
+                </div>
+                <div class="normal-params" style="display: none;">
+                    <div class="input-group">
+                        <label for="normal-mean">Mean:</label>
+                        <input type="number" id="normal-mean" step="any">
+                    </div>
+                    <div class="input-group">
+                        <label for="normal-stddev">Standard Deviation:</label>
+                        <input type="number" id="normal-stddev" step="any">
+                    </div>
+                    <div class="input-group">
+                        <label for="normal-x">X Value:</label>
+                        <input type="number" id="normal-x" step="any">
+                    </div>
+                </div>
+                <button onclick="calculateStatistical()">Analyze</button>
+            </div>
+
+            <!-- Psychometric Tools -->
+            <div class="tab-content" id="psychometric">
+                <div class="input-group">
+                    <label for="psychometric-operation">Analysis Type:</label>
+                    <select id="psychometric-operation">
+                        <option value="cronbach">Cronbach's Alpha</option>
+                        <option value="item-analysis">Item Analysis</option>
+                        <option value="standardize">Score Standardization</option>
+                    </select>
+                </div>
+                <div id="cronbach-input" style="display: none;">
+                    <div class="input-group">
+                        <label for="num-items">Number of Items:</label>
+                        <input type="number" id="num-items" min="1">
+                    </div>
+                    <div id="item-responses"></div>
+                </div>
+                <div id="item-analysis-input" style="display: none;">
+                    <div class="dataset-input">
+                        <label>Item Responses (0/1):</label>
+                        <textarea class="dataset-values" id="item-responses-data"></textarea>
+                    </div>
+                    <div class="dataset-input">
+                        <label>Total Scores:</label>
+                        <textarea class="dataset-values" id="total-scores-data"></textarea>
+                    </div>
+                </div>
+                <div id="standardize-input" style="display: none;">
+                    <div class="dataset-input">
+                        <label>Raw Scores:</label>
+                        <textarea class="dataset-values" id="raw-scores"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="desired-mean">Desired Mean:</label>
+                        <input type="number" id="desired-mean" value="100">
+                    </div>
+                    <div class="input-group">
+                        <label for="desired-stddev">Desired Standard Deviation:</label>
+                        <input type="number" id="desired-stddev" value="15">
+                    </div>
+                </div>
+                <button onclick="calculatePsychometric()">Analyze</button>
+            </div>
+
+            <div class="result" id="result">
+                <h3>Result:</h3>
+                <p id="result-value"></p>
+            </div>
+            <div class="error" id="error"></div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Operation selection handlers
+        document.getElementById('advanced-operation').addEventListener('change', function() {
+            const powerInput = document.getElementById('power-input');
+            powerInput.style.display = this.value === 'power' ? 'block' : 'none';
+        });
+
+        document.getElementById('statistical-operation').addEventListener('change', function() {
+            const datasetDouble = document.getElementById('dataset-double');
+            const normalParams = document.querySelector('.normal-params');
+            
+            datasetDouble.style.display = this.value === 'correlation' ? 'block' : 'none';
+            normalParams.style.display = this.value.includes('normal') ? 'block' : 'none';
+        });
+
+        document.getElementById('psychometric-operation').addEventListener('change', function() {
+            const cronbachInput = document.getElementById('cronbach-input');
+            const itemAnalysisInput = document.getElementById('item-analysis-input');
+            const standardizeInput = document.getElementById('standardize-input');
+            
+            cronbachInput.style.display = this.value === 'cronbach' ? 'block' : 'none';
+            itemAnalysisInput.style.display = this.value === 'item-analysis' ? 'block' : 'none';
+            standardizeInput.style.display = this.value === 'standardize' ? 'block' : 'none';
+        });
+
+        // Helper functions
+        function showResult(value) {
+            const result = document.getElementById('result');
+            const resultValue = document.getElementById('result-value');
+            result.classList.add('show');
+            resultValue.textContent = value;
+        }
+
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.style.display = 'block';
+            error.textContent = message;
+        }
+
+        function parseDataset(text) {
+            return text.split('\n')
+                      .map(line => line.trim())
+                      .filter(line => line !== '')
+                      .map(line => parseFloat(line));
+        }
+
+        // Calculation functions
+        function calculateBasic() {
+            const operation = document.getElementById('basic-operation').value;
+            const num1 = parseFloat(document.getElementById('num1').value);
+            const num2 = parseFloat(document.getElementById('num2').value);
+
+            if (isNaN(num1) || isNaN(num2)) {
+                showError('Please enter valid numbers');
+                return;
+            }
+
+            let result;
+            switch (operation) {
+                case 'add': result = num1 + num2; break;
+                case 'subtract': result = num1 - num2; break;
+                case 'multiply': result = num1 * num2; break;
+                case 'divide':
+                    if (num2 === 0) {
+                        showError('Division by zero is not allowed');
+                        return;
+                    }
+                    result = num1 / num2;
+                    break;
+            }
+
+            showResult(result.toFixed(6));
+        }
+
+        function calculateAdvanced() {
+            const operation = document.getElementById('advanced-operation').value;
+            const input = parseFloat(document.getElementById('advanced-input').value);
+
+            if (isNaN(input)) {
+                showError('Please enter a valid number');
+                return;
+            }
+
+            let result;
+            try {
+                switch (operation) {
+                    case 'power':
+                        const exponent = parseFloat(document.getElementById('exponent').value);
+                        if (isNaN(exponent)) {
+                            showError('Please enter a valid exponent');
+                            return;
+                        }
+                        result = Math.pow(input, exponent);
+                        break;
+                    case 'sqrt':
+                        if (input < 0) throw new Error('Cannot calculate square root of negative number');
+                        result = Math.sqrt(input);
+                        break;
+                    case 'cbrt': result = Math.cbrt(input); break;
+                    case 'sin': result = Math.sin(input * Math.PI / 180); break;
+                    case 'cos': result = Math.cos(input * Math.PI / 180); break;
+                    case 'tan': result = Math.tan(input * Math.PI / 180); break;
+                    case 'asin':
+                        if (input < -1 || input > 1) throw new Error('Arc sine input must be between -1 and 1');
+                        result = Math.asin(input) * 180 / Math.PI;
+                        break;
+                    case 'acos':
+                        if (input < -1 || input > 1) throw new Error('Arc cosine input must be between -1 and 1');
+                        result = Math.acos(input) * 180 / Math.PI;
+                        break;
+                    case 'atan': result = Math.atan(input) * 180 / Math.PI; break;
+                    case 'ln':
+                        if (input <= 0) throw new Error('Cannot calculate logarithm of non-positive number');
+                        result = Math.log(input);
+                        break;
+                    case 'log10':
+                        if (input <= 0) throw new Error('Cannot calculate logarithm of non-positive number');
+                        result = Math.log10(input);
+                        break;
+                    case 'exp': result = Math.exp(input); break;
+                    case 'abs': result = Math.abs(input); break;
+                    case 'factorial':
+                        if (input < 0 || !Number.isInteger(input)) throw new Error('Factorial only defined for non-negative integers');
+                        result = factorial(input);
+                        break;
+                }
+                showResult(result.toFixed(6));
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        function factorial(n) {
+            if (n === 0 || n === 1) return 1;
+            return n * factorial(n - 1);
+        }
+
+        function calculateStatistical() {
+            const operation = document.getElementById('statistical-operation').value;
+
+            try {
+                let result;
+                switch (operation) {
+                    case 'descriptive': {
+                        const data = parseDataset(document.getElementById('dataset1').value);
+                        if (data.length === 0) throw new Error('Please enter valid dataset');
+                        
+                        const stats = calculateDescriptiveStats(data);
+                        showResult(`Mean: ${stats.mean.toFixed(6)}
+                                  Median: ${stats.median.toFixed(6)}
+                                  Standard Deviation: ${stats.stdDev.toFixed(6)}
+                                  Minimum: ${stats.min.toFixed(6)}
+                                  Maximum: ${stats.max.toFixed(6)}
+                                  Range: ${stats.range.toFixed(6)}`);
+                        break;
+                    }
+                    case 'correlation': {
+                        const data1 = parseDataset(document.getElementById('dataset1').value);
+                        const data2 = parseDataset(document.getElementById('dataset2').value);
+                        if (data1.length !== data2.length) throw new Error('Datasets must be of equal size');
+                        
+                        result = calculateCorrelation(data1, data2);
+                        showResult(result.toFixed(6));
+                        break;
+                    }
+                    case 'normal-pdf':
+                    case 'normal-cdf': {
+                        const x = parseFloat(document.getElementById('normal-x').value);
+                        const mean = parseFloat(document.getElementById('normal-mean').value);
+                        const stdDev = parseFloat(document.getElementById('normal-stddev').value);
+                        
+                        if (isNaN(x) || isNaN(mean) || isNaN(stdDev)) throw new Error('Please enter valid parameters');
+                        if (stdDev <= 0) throw new Error('Standard deviation must be positive');
+                        
+                        result = operation === 'normal-pdf' ? 
+                                calculateNormalPDF(x, mean, stdDev) : 
+                                calculateNormalCDF(x, mean, stdDev);
+                        showResult(result.toFixed(6));
+                        break;
+                    }
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        function calculatePsychometric() {
+            const operation = document.getElementById('psychometric-operation').value;
+
+            try {
+                let result;
+                switch (operation) {
+                    case 'cronbach': {
+                        const numItems = parseInt(document.getElementById('num-items').value);
+                        const items = [];
+                        for (let i = 0; i < numItems; i++) {
+                            items.push(parseDataset(document.getElementById(`item-${i}`).value));
+                        }
+                        result = calculateCronbachAlpha(items);
+                        break;
+                    }
+                    case 'item-analysis': {
+                        const responses = parseDataset(document.getElementById('item-responses-data').value);
+                        const totalScores = parseDataset(document.getElementById('total-scores-data').value);
+                        
+                        const difficulty = calculateItemDifficulty(responses);
+                        const discrimination = calculateItemDiscrimination(responses, totalScores);
+                        
+                        showResult(`Difficulty: ${difficulty.toFixed(6)}
+                                  Discrimination: ${discrimination.toFixed(6)}`);
+                        return;
+                    }
+                    case 'standardize': {
+                        const rawScores = parseDataset(document.getElementById('raw-scores').value);
+                        const desiredMean = parseFloat(document.getElementById('desired-mean').value);
+                        const desiredStdDev = parseFloat(document.getElementById('desired-stddev').value);
+                        
+                        const standardizedScores = standardizeScores(rawScores, desiredMean, desiredStdDev);
+                        showResult('Standardized Scores:\n' + standardizedScores.map(s => s.toFixed(6)).join('\n'));
+                        return;
+                    }
+                }
+                showResult(result.toFixed(6));
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        // Statistical calculation functions
+        function calculateDescriptiveStats(data) {
+            const mean = data.reduce((a, b) => a + b) / data.length;
+            const sortedData = [...data].sort((a, b) => a - b);
+            const median = data.length % 2 === 0 ? 
+                (sortedData[data.length/2 - 1] + sortedData[data.length/2]) / 2 : 
+                sortedData[Math.floor(data.length/2)];
+            
+            const variance = data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (data.length - 1);
+            const stdDev = Math.sqrt(variance);
+            
+            return {
+                mean,
+                median,
+                stdDev,
+                min: sortedData[0],
+                max: sortedData[sortedData.length - 1],
+                range: sortedData[sortedData.length - 1] - sortedData[0]
+            };
+        }
+
+        function calculateCorrelation(x, y) {
+            const meanX = x.reduce((a, b) => a + b) / x.length;
+            const meanY = y.reduce((a, b) => a + b) / y.length;
+            
+            let numerator = 0;
+            let denomX = 0;
+            let denomY = 0;
+            
+            for (let i = 0; i < x.length; i++) {
+                const xDiff = x[i] - meanX;
+                const yDiff = y[i] - meanY;
+                numerator += xDiff * yDiff;
+                denomX += xDiff * xDiff;
+                denomY += yDiff * yDiff;
+            }
+            
+            return numerator / Math.sqrt(denomX * denomY);
+        }
+
+        function calculateNormalPDF(x, mean, stdDev) {
+            const coefficient = 1 / (stdDev * Math.sqrt(2 * Math.PI));
+            const exponent = -Math.pow(x - mean, 2) / (2 * Math.pow(stdDev, 2));
+            return coefficient * Math.exp(exponent);
+        }
+
+        function calculateNormalCDF(x, mean, stdDev) {
+            const z = (x - mean) / stdDev;
+            return 0.5 * (1 + erf(z / Math.sqrt(2)));
+        }
+
+        function erf(x) {
+            // Approximation of the error function
+            const sign = x >= 0 ? 1 : -1;
+            x = Math.abs(x);
+            
+            const a1 = 0.254829592;
+            const a2 = -0.284496736;
+            const a3 = 1.421413741;
+            const a4 = -1.453152027;
+            const a5 = 1.061405429;
+            const p = 0.3275911;
+            
+            const t = 1.0 / (1.0 + p * x);
+            const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+            return sign * y;
+        }
+
+        function calculateCronbachAlpha(items) {
+            const n = items.length;
+            const k = items[0].length;
+            
+            // Calculate sum scores
+            const sumScores = new Array(k).fill(0);
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < k; j++) {
+                    sumScores[j] += items[i][j];
+                }
+            }
+            
+            // Calculate variance of sum scores
+            const meanSum = sumScores.reduce((a, b) => a + b) / k;
+            const varSum = sumScores.reduce((a, b) => a + Math.pow(b - meanSum, 2), 0) / k;
+            
+            // Calculate sum of item variances
+            let sumVar = 0;
+            for (const item of items) {
+                const mean = item.reduce((a, b) => a + b) / k;
+                sumVar += item.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / k;
+            }
+            
+            return (n / (n - 1)) * (1 - (sumVar / varSum));
+        }
+
+        function calculateItemDifficulty(responses) {
+            return responses.reduce((a, b) => a + b) / responses.length;
+        }
+
+        function calculateItemDiscrimination(responses, totalScores) {
+            return calculateCorrelation(responses, totalScores);
+        }
+
+        function standardizeScores(rawScores, desiredMean, desiredStdDev) {
+            const stats = calculateDescriptiveStats(rawScores);
+            return rawScores.map(score => {
+                const zScore = (score - stats.mean) / stats.stdDev;
+                return zScore * desiredStdDev + desiredMean;
+            });
+        }
+
+        // Initialize event listeners
+        document.getElementById('num-items').addEventListener('change', function() {
+            const container = document.getElementById('item-responses');
+            container.innerHTML = '';
+            
+            const numItems = parseInt(this.value);
+            for (let i = 0; i < numItems; i++) {
+                const div = document.createElement('div');
+                div.className = 'dataset-input';
+                div.innerHTML = `
+                    <label>Responses for Item ${i + 1}:</label>
+                    <textarea class="dataset-values" id="item-${i}"></textarea>
+                `;
+                container.appendChild(div);
+            }
+        });
+    </script>
+</body>
+</html> 
