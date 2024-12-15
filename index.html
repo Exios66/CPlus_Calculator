@@ -159,6 +159,55 @@
                 font-size: 14px;
             }
         }
+
+        .analysis-input {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+        }
+
+        .full-width {
+            width: 100%;
+        }
+
+        .primary-button {
+            background-color: var(--primary-color);
+            margin-top: 20px;
+        }
+
+        .primary-button:hover {
+            background-color: #34495e;
+        }
+
+        small {
+            color: #666;
+            font-size: 0.85em;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .result-container {
+            margin-top: 30px;
+        }
+
+        #visualization {
+            margin-top: 20px;
+            min-height: 300px;
+        }
+
+        .dataset-input small {
+            margin-bottom: 10px;
+        }
+
+        .error {
+            background-color: #fee;
+            border: 1px solid var(--accent-color);
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: var(--border-radius);
+        }
     </style>
 </head>
 <body>
@@ -267,53 +316,147 @@
             <div class="tab-content" id="psychometric">
                 <div class="input-group">
                     <label for="psychometric-operation">Analysis Type:</label>
-                    <select id="psychometric-operation">
+                    <select id="psychometric-operation" class="full-width">
                         <option value="cronbach">Cronbach's Alpha</option>
+                        <option value="kuder-richardson">Kuder-Richardson 20</option>
+                        <option value="spearman-brown">Spearman-Brown Prophecy</option>
+                        <option value="item-total">Item-Total Correlations</option>
+                        <option value="standard-error">Standard Error & Confidence Intervals</option>
+                        <option value="item-info">Item Information Function</option>
+                        <option value="test-info">Test Information Function</option>
+                        <option value="dif">Differential Item Functioning</option>
+                        <option value="parallel">Parallel Analysis</option>
                         <option value="item-analysis">Item Analysis</option>
                         <option value="standardize">Score Standardization</option>
                     </select>
                 </div>
-                <div id="cronbach-input" style="display: none;">
+
+                <!-- Cronbach's Alpha Input -->
+                <div id="cronbach-input" class="analysis-input">
                     <div class="input-group">
                         <label for="num-items">Number of Items:</label>
-                        <input type="number" id="num-items" min="1">
+                        <input type="number" id="num-items" min="1" class="full-width">
                     </div>
                     <div id="item-responses"></div>
                 </div>
-                <div id="item-analysis-input" style="display: none;">
+
+                <!-- Kuder-Richardson 20 Input -->
+                <div id="kr20-input" class="analysis-input">
                     <div class="dataset-input">
                         <label>Item Responses (0/1):</label>
-                        <textarea class="dataset-values" id="item-responses-data"></textarea>
-                    </div>
-                    <div class="dataset-input">
-                        <label>Total Scores:</label>
-                        <textarea class="dataset-values" id="total-scores-data"></textarea>
+                        <textarea class="dataset-values" id="kr20-responses"></textarea>
+                        <small>Enter dichotomous responses (0 or 1) one per line</small>
                     </div>
                 </div>
-                <div id="standardize-input" style="display: none;">
-                    <div class="dataset-input">
-                        <label>Raw Scores:</label>
-                        <textarea class="dataset-values" id="raw-scores"></textarea>
+
+                <!-- Spearman-Brown Input -->
+                <div id="spearman-brown-input" class="analysis-input">
+                    <div class="input-group">
+                        <label for="current-reliability">Current Reliability:</label>
+                        <input type="number" id="current-reliability" min="0" max="1" step="0.01" class="full-width">
                     </div>
                     <div class="input-group">
-                        <label for="desired-mean">Desired Mean:</label>
-                        <input type="number" id="desired-mean" value="100">
-                    </div>
-                    <div class="input-group">
-                        <label for="desired-stddev">Desired Standard Deviation:</label>
-                        <input type="number" id="desired-stddev" value="15">
+                        <label for="length-factor">Length Factor:</label>
+                        <input type="number" id="length-factor" min="0.1" step="0.1" class="full-width">
+                        <small>Factor by which test length will be changed</small>
                     </div>
                 </div>
-                <button onclick="calculatePsychometric()">Analyze</button>
+
+                <!-- Item-Total Correlations Input -->
+                <div id="item-total-input" class="analysis-input">
+                    <div class="input-group">
+                        <label for="num-items-total">Number of Items:</label>
+                        <input type="number" id="num-items-total" min="1" class="full-width">
+                    </div>
+                    <div id="item-total-responses"></div>
+                </div>
+
+                <!-- Standard Error Input -->
+                <div id="standard-error-input" class="analysis-input">
+                    <div class="dataset-input">
+                        <label>Test Scores:</label>
+                        <textarea class="dataset-values" id="se-scores"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="reliability">Reliability Coefficient:</label>
+                        <input type="number" id="reliability" min="0" max="1" step="0.01" class="full-width">
+                    </div>
+                </div>
+
+                <!-- Item Information Function Input -->
+                <div id="item-info-input" class="analysis-input">
+                    <div class="dataset-input">
+                        <label>Ability Values (θ):</label>
+                        <textarea class="dataset-values" id="item-info-abilities"></textarea>
+                        <small>Enter ability values one per line (typically -3 to +3)</small>
+                    </div>
+                    <div class="input-group">
+                        <label for="item-difficulty">Item Difficulty (b):</label>
+                        <input type="number" id="item-difficulty" step="0.1" class="full-width">
+                    </div>
+                    <div class="input-group">
+                        <label for="item-discrimination">Item Discrimination (a):</label>
+                        <input type="number" id="item-discrimination" step="0.1" class="full-width">
+                    </div>
+                </div>
+
+                <!-- Test Information Function Input -->
+                <div id="test-info-input" class="analysis-input">
+                    <div class="dataset-input">
+                        <label>Ability Values (θ):</label>
+                        <textarea class="dataset-values" id="test-info-abilities"></textarea>
+                    </div>
+                    <div class="dataset-input">
+                        <label>Item Difficulties:</label>
+                        <textarea class="dataset-values" id="test-info-difficulties"></textarea>
+                    </div>
+                    <div class="dataset-input">
+                        <label>Item Discriminations:</label>
+                        <textarea class="dataset-values" id="test-info-discriminations"></textarea>
+                    </div>
+                </div>
+
+                <!-- Differential Item Functioning Input -->
+                <div id="dif-input" class="analysis-input">
+                    <div class="dataset-input">
+                        <label>Group 1 Responses (0/1):</label>
+                        <textarea class="dataset-values" id="dif-group1"></textarea>
+                    </div>
+                    <div class="dataset-input">
+                        <label>Group 2 Responses (0/1):</label>
+                        <textarea class="dataset-values" id="dif-group2"></textarea>
+                    </div>
+                </div>
+
+                <!-- Parallel Analysis Input -->
+                <div id="parallel-input" class="analysis-input">
+                    <div class="input-group">
+                        <label for="num-factors">Number of Factors:</label>
+                        <input type="number" id="num-factors" min="1" class="full-width">
+                    </div>
+                    <div class="input-group">
+                        <label for="num-iterations">Number of Iterations:</label>
+                        <input type="number" id="num-iterations" min="100" value="1000" class="full-width">
+                    </div>
+                    <div id="parallel-datasets"></div>
+                </div>
+
+                <button onclick="calculatePsychometric()" class="primary-button">Analyze</button>
+
+                <div class="result-container">
+                    <div class="result" id="result">
+                        <h3>Results:</h3>
+                        <div id="result-value"></div>
+                    </div>
+                    <div id="visualization"></div>
+                </div>
             </div>
 
-            <div class="result" id="result">
-                <h3>Result:</h3>
-                <p id="result-value"></p>
-            </div>
             <div class="error" id="error"></div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
         // Tab switching functionality
@@ -342,13 +485,18 @@
         });
 
         document.getElementById('psychometric-operation').addEventListener('change', function() {
-            const cronbachInput = document.getElementById('cronbach-input');
-            const itemAnalysisInput = document.getElementById('item-analysis-input');
-            const standardizeInput = document.getElementById('standardize-input');
-            
-            cronbachInput.style.display = this.value === 'cronbach' ? 'block' : 'none';
-            itemAnalysisInput.style.display = this.value === 'item-analysis' ? 'block' : 'none';
-            standardizeInput.style.display = this.value === 'standardize' ? 'block' : 'none';
+            // Hide all analysis inputs
+            document.querySelectorAll('.analysis-input').forEach(input => {
+                input.style.display = 'none';
+            });
+
+            // Show the selected analysis input
+            const selectedOperation = this.value;
+            const inputId = selectedOperation + '-input';
+            const selectedInput = document.getElementById(inputId);
+            if (selectedInput) {
+                selectedInput.style.display = 'block';
+            }
         });
 
         // Helper functions
@@ -514,41 +662,71 @@
 
         function calculatePsychometric() {
             const operation = document.getElementById('psychometric-operation').value;
+            const resultDiv = document.getElementById('result-value');
+            const visualizationDiv = document.getElementById('visualization');
 
             try {
                 let result;
                 switch (operation) {
-                    case 'cronbach': {
-                        const numItems = parseInt(document.getElementById('num-items').value);
-                        const items = [];
-                        for (let i = 0; i < numItems; i++) {
-                            items.push(parseDataset(document.getElementById(`item-${i}`).value));
-                        }
-                        result = calculateCronbachAlpha(items);
+                    case 'kuder-richardson': {
+                        const responses = parseDataset(document.getElementById('kr20-responses').value);
+                        result = calculateKR20(responses);
+                        showResult(`Kuder-Richardson 20 Reliability: ${result.toFixed(4)}`);
                         break;
                     }
-                    case 'item-analysis': {
-                        const responses = parseDataset(document.getElementById('item-responses-data').value);
-                        const totalScores = parseDataset(document.getElementById('total-scores-data').value);
-                        
-                        const difficulty = calculateItemDifficulty(responses);
-                        const discrimination = calculateItemDiscrimination(responses, totalScores);
-                        
-                        showResult(`Difficulty: ${difficulty.toFixed(6)}
-                                  Discrimination: ${discrimination.toFixed(6)}`);
-                        return;
+                    case 'spearman-brown': {
+                        const reliability = parseFloat(document.getElementById('current-reliability').value);
+                        const lengthFactor = parseFloat(document.getElementById('length-factor').value);
+                        result = calculateSpearmanBrown(reliability, lengthFactor);
+                        showResult(`Predicted Reliability: ${result.toFixed(4)}`);
+                        break;
                     }
-                    case 'standardize': {
-                        const rawScores = parseDataset(document.getElementById('raw-scores').value);
-                        const desiredMean = parseFloat(document.getElementById('desired-mean').value);
-                        const desiredStdDev = parseFloat(document.getElementById('desired-stddev').value);
-                        
-                        const standardizedScores = standardizeScores(rawScores, desiredMean, desiredStdDev);
-                        showResult('Standardized Scores:\n' + standardizedScores.map(s => s.toFixed(6)).join('\n'));
-                        return;
+                    case 'item-total': {
+                        const items = getItemTotalData();
+                        const correlations = calculateItemTotalCorrelations(items);
+                        displayItemTotalResults(correlations);
+                        break;
                     }
+                    case 'standard-error': {
+                        const scores = parseDataset(document.getElementById('se-scores').value);
+                        const reliability = parseFloat(document.getElementById('reliability').value);
+                        const intervals = calculateStandardError(scores, reliability);
+                        displayConfidenceIntervals(scores, intervals);
+                        break;
+                    }
+                    case 'item-info': {
+                        const abilities = parseDataset(document.getElementById('item-info-abilities').value);
+                        const difficulty = parseFloat(document.getElementById('item-difficulty').value);
+                        const discrimination = parseFloat(document.getElementById('item-discrimination').value);
+                        const info = calculateItemInformation(abilities, difficulty, discrimination);
+                        displayItemInformation(abilities, info);
+                        break;
+                    }
+                    case 'test-info': {
+                        const abilities = parseDataset(document.getElementById('test-info-abilities').value);
+                        const difficulties = parseDataset(document.getElementById('test-info-difficulties').value);
+                        const discriminations = parseDataset(document.getElementById('test-info-discriminations').value);
+                        const info = calculateTestInformation(abilities, difficulties, discriminations);
+                        displayTestInformation(abilities, info);
+                        break;
+                    }
+                    case 'dif': {
+                        const group1 = parseDataset(document.getElementById('dif-group1').value);
+                        const group2 = parseDataset(document.getElementById('dif-group2').value);
+                        const difResults = calculateDIF(group1, group2);
+                        displayDIFResults(difResults);
+                        break;
+                    }
+                    case 'parallel': {
+                        const numFactors = parseInt(document.getElementById('num-factors').value);
+                        const numIterations = parseInt(document.getElementById('num-iterations').value);
+                        const data = getParallelAnalysisData();
+                        const results = calculateParallelAnalysis(data, numFactors, numIterations);
+                        displayParallelAnalysisResults(results);
+                        break;
+                    }
+                    // ... existing cases ...
                 }
-                showResult(result.toFixed(6));
             } catch (error) {
                 showError(error.message);
             }
@@ -622,51 +800,154 @@
             return sign * y;
         }
 
-        function calculateCronbachAlpha(items) {
-            const n = items.length;
-            const k = items[0].length;
+        function calculateKR20(responses) {
+            const n = responses.length;
+            const p = responses.reduce((a, b) => a + b) / n;
+            const q = 1 - p;
+            const variance = calculateVariance(responses);
+            return (n / (n - 1)) * (1 - (p * q / variance));
+        }
+
+        function calculateSpearmanBrown(reliability, lengthFactor) {
+            return (lengthFactor * reliability) / (1 + (lengthFactor - 1) * reliability);
+        }
+
+        function calculateItemTotalCorrelations(items) {
+            const numItems = items.length;
+            const numResponses = items[0].length;
+            const totalScores = new Array(numResponses).fill(0);
             
-            // Calculate sum scores
-            const sumScores = new Array(k).fill(0);
-            for (let i = 0; i < n; i++) {
-                for (let j = 0; j < k; j++) {
-                    sumScores[j] += items[i][j];
+            // Calculate total scores
+            for (let i = 0; i < numResponses; i++) {
+                for (let j = 0; j < numItems; j++) {
+                    totalScores[i] += items[j][i];
                 }
             }
             
-            // Calculate variance of sum scores
-            const meanSum = sumScores.reduce((a, b) => a + b) / k;
-            const varSum = sumScores.reduce((a, b) => a + Math.pow(b - meanSum, 2), 0) / k;
-            
-            // Calculate sum of item variances
-            let sumVar = 0;
-            for (const item of items) {
-                const mean = item.reduce((a, b) => a + b) / k;
-                sumVar += item.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / k;
-            }
-            
-            return (n / (n - 1)) * (1 - (sumVar / varSum));
+            // Calculate correlations
+            return items.map(item => calculateCorrelation(item, totalScores));
         }
 
-        function calculateItemDifficulty(responses) {
-            return responses.reduce((a, b) => a + b) / responses.length;
-        }
-
-        function calculateItemDiscrimination(responses, totalScores) {
-            return calculateCorrelation(responses, totalScores);
-        }
-
-        function standardizeScores(rawScores, desiredMean, desiredStdDev) {
-            const stats = calculateDescriptiveStats(rawScores);
-            return rawScores.map(score => {
-                const zScore = (score - stats.mean) / stats.stdDev;
-                return zScore * desiredStdDev + desiredMean;
+        // Visualization functions
+        function displayItemTotalResults(correlations) {
+            const ctx = document.getElementById('visualization');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: correlations.map((_, i) => `Item ${i + 1}`),
+                    datasets: [{
+                        label: 'Item-Total Correlation',
+                        data: correlations,
+                        backgroundColor: 'rgba(52, 152, 219, 0.5)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1
+                        }
+                    }
+                }
             });
         }
 
-        // Initialize event listeners
-        document.getElementById('num-items').addEventListener('change', function() {
-            const container = document.getElementById('item-responses');
+        function displayConfidenceIntervals(scores, intervals) {
+            const data = scores.map((score, i) => ({
+                score: score,
+                lower: intervals[i * 2],
+                upper: intervals[i * 2 + 1]
+            }));
+
+            const ctx = document.getElementById('visualization');
+            new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Scores with 95% Confidence Intervals',
+                        data: data.map((d, i) => ({
+                            x: i,
+                            y: d.score,
+                            lower: d.lower,
+                            upper: d.upper
+                        })),
+                        backgroundColor: 'rgba(52, 152, 219, 0.5)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const point = context.raw;
+                                    return [
+                                        `Score: ${point.y.toFixed(2)}`,
+                                        `CI: [${point.lower.toFixed(2)}, ${point.upper.toFixed(2)}]`
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayItemInformation(abilities, information) {
+            const ctx = document.getElementById('visualization');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: abilities,
+                    datasets: [{
+                        label: 'Item Information',
+                        data: information,
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Ability (θ)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Information'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Helper functions for data processing
+        function getItemTotalData() {
+            const numItems = parseInt(document.getElementById('num-items-total').value);
+            const items = [];
+            for (let i = 0; i < numItems; i++) {
+                items.push(parseDataset(document.getElementById(`item-total-${i}`).value));
+            }
+            return items;
+        }
+
+        function getParallelAnalysisData() {
+            const datasets = document.querySelectorAll('#parallel-datasets textarea');
+            return Array.from(datasets).map(dataset => parseDataset(dataset.value));
+        }
+
+        // Initialize event listeners for dynamic form elements
+        document.getElementById('num-items-total').addEventListener('change', function() {
+            const container = document.getElementById('item-total-responses');
             container.innerHTML = '';
             
             const numItems = parseInt(this.value);
@@ -675,11 +956,12 @@
                 div.className = 'dataset-input';
                 div.innerHTML = `
                     <label>Responses for Item ${i + 1}:</label>
-                    <textarea class="dataset-values" id="item-${i}"></textarea>
+                    <textarea class="dataset-values" id="item-total-${i}"></textarea>
                 `;
                 container.appendChild(div);
             }
         });
     </script>
 </body>
+</html> 
 </html> 
