@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <numeric>
 #include <map>
+#include <random>
 
 class ScientificCalculator {
 private:
@@ -214,6 +215,246 @@ public:
         }
         
         return standardizedScores;
+    }
+
+    // Advanced Psychometric Functions
+    double kuderRichardson20(const std::vector<double>& responses) {
+        if (responses.empty()) throw std::runtime_error("Empty response set!");
+        
+        size_t n = responses.size();
+        double p = itemDifficulty(responses);
+        double q = 1.0 - p;
+        double pq = p * q;
+        double variance = calculateVariance(responses, false);
+        
+        return (n / (n - 1.0)) * (1.0 - (pq / variance));
+    }
+
+    double spearmanBrownProphecy(double reliability, double lengthFactor) {
+        if (reliability < 0 || reliability > 1) 
+            throw std::runtime_error("Reliability must be between 0 and 1!");
+        if (lengthFactor <= 0) 
+            throw std::runtime_error("Length factor must be positive!");
+        
+        return (lengthFactor * reliability) / (1.0 + (lengthFactor - 1.0) * reliability);
+    }
+
+    std::vector<double> itemTotalCorrelations(const std::vector<std::vector<double>>& items) {
+        if (items.empty() || items[0].empty()) 
+            throw std::runtime_error("Empty dataset!");
+        
+        size_t numItems = items.size();
+        size_t numResponses = items[0].size();
+        std::vector<double> correlations;
+        correlations.reserve(numItems);
+        
+        // Calculate total scores
+        std::vector<double> totalScores(numResponses, 0.0);
+        for (const auto& item : items) {
+            if (item.size() != numResponses) 
+                throw std::runtime_error("Inconsistent number of responses!");
+            for (size_t i = 0; i < numResponses; ++i) {
+                totalScores[i] += item[i];
+            }
+        }
+        
+        // Calculate correlation for each item
+        for (const auto& item : items) {
+            correlations.push_back(correlation(item, totalScores));
+        }
+        
+        return correlations;
+    }
+
+    std::vector<double> standardError(const std::vector<double>& scores, double reliability) {
+        if (scores.empty()) throw std::runtime_error("Empty score set!");
+        if (reliability < 0 || reliability > 1) 
+            throw std::runtime_error("Reliability must be between 0 and 1!");
+        
+        double stdDev = calculateStandardDeviation(scores);
+        double sem = stdDev * sqrt(1 - reliability);
+        
+        std::vector<double> confidenceIntervals;
+        confidenceIntervals.reserve(scores.size() * 2);
+        
+        // Calculate 95% confidence intervals (±1.96 SEM)
+        for (double score : scores) {
+            confidenceIntervals.push_back(score - 1.96 * sem);  // Lower bound
+            confidenceIntervals.push_back(score + 1.96 * sem);  // Upper bound
+        }
+        
+        return confidenceIntervals;
+    }
+
+    std::vector<double> itemInformationFunction(const std::vector<double>& abilities, 
+                                              double difficulty, 
+                                              double discrimination) {
+        std::vector<double> information;
+        information.reserve(abilities.size());
+        
+        for (double theta : abilities) {
+            double p = 1.0 / (1.0 + exp(-discrimination * (theta - difficulty)));
+            double q = 1.0 - p;
+            information.push_back(discrimination * discrimination * p * q);
+        }
+        
+        return information;
+    }
+
+    std::vector<double> testInformationFunction(const std::vector<double>& abilities,
+                                              const std::vector<double>& difficulties,
+                                              const std::vector<double>& discriminations) {
+        if (difficulties.size() != discriminations.size())
+            throw std::runtime_error("Number of difficulties must match number of discriminations!");
+        
+        std::vector<double> totalInformation(abilities.size(), 0.0);
+        
+        for (size_t i = 0; i < difficulties.size(); ++i) {
+            auto itemInfo = itemInformationFunction(abilities, difficulties[i], discriminations[i]);
+            for (size_t j = 0; j < abilities.size(); ++j) {
+                totalInformation[j] += itemInfo[j];
+            }
+        }
+        
+        return totalInformation;
+    }
+
+    std::vector<double> differentialItemFunctioning(const std::vector<double>& group1Responses,
+                                                  const std::vector<double>& group2Responses) {
+        if (group1Responses.empty() || group2Responses.empty())
+            throw std::runtime_error("Empty response sets!");
+        
+        double p1 = itemDifficulty(group1Responses);
+        double p2 = itemDifficulty(group2Responses);
+        
+        double n1 = group1Responses.size();
+        double n2 = group2Responses.size();
+        
+        double se = sqrt((p1 * (1 - p1) / n1) + (p2 * (1 - p2) / n2));
+        double zScore = (p1 - p2) / se;
+        double pValue = 2 * (1 - normalCDF(abs(zScore), 0, 1));
+        
+        return {p1 - p2, zScore, pValue};
+    }
+
+    std::vector<double> parallelAnalysis(const std::vector<std::vector<double>>& data,
+                                       int numFactors,
+                                       int numIterations = 1000) {
+        if (data.empty() || data[0].empty())
+            throw std::runtime_error("Empty dataset!");
+        
+        size_t numVariables = data.size();
+        size_t numObservations = data[0].size();
+        
+        // Calculate correlation matrix of actual data
+        std::vector<std::vector<double>> correlationMatrix(numVariables, std::vector<double>(numVariables));
+        for (size_t i = 0; i < numVariables; ++i) {
+            for (size_t j = i; j < numVariables; ++j) {
+                double r = (i == j) ? 1.0 : correlation(data[i], data[j]);
+                correlationMatrix[i][j] = correlationMatrix[j][i] = r;
+            }
+        }
+        
+        // Calculate eigenvalues of actual data
+        std::vector<double> actualEigenvalues = calculateEigenvalues(correlationMatrix);
+        std::vector<double> randomEigenvalues(numFactors, 0.0);
+        
+        // Generate random data and calculate mean eigenvalues
+        for (int iter = 0; iter < numIterations; ++iter) {
+            auto randomData = generateRandomData(numVariables, numObservations);
+            auto randomCorr = calculateCorrelationMatrix(randomData);
+            auto eigenvalues = calculateEigenvalues(randomCorr);
+            
+            for (int i = 0; i < numFactors; ++i) {
+                randomEigenvalues[i] += eigenvalues[i] / numIterations;
+            }
+        }
+        
+        return {actualEigenvalues.begin(), actualEigenvalues.begin() + numFactors};
+    }
+
+private:
+    // Helper function for parallel analysis
+    std::vector<std::vector<double>> generateRandomData(size_t numVariables, size_t numObservations) {
+        std::vector<std::vector<double>> randomData(numVariables, std::vector<double>(numObservations));
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::normal_distribution<double> d(0, 1);
+        
+        for (size_t i = 0; i < numVariables; ++i) {
+            for (size_t j = 0; j < numObservations; ++j) {
+                randomData[i][j] = d(gen);
+            }
+        }
+        
+        return randomData;
+    }
+
+    std::vector<std::vector<double>> calculateCorrelationMatrix(const std::vector<std::vector<double>>& data) {
+        size_t n = data.size();
+        std::vector<std::vector<double>> matrix(n, std::vector<double>(n));
+        
+        for (size_t i = 0; i < n; ++i) {
+            for (size_t j = i; j < n; ++j) {
+                double r = (i == j) ? 1.0 : correlation(data[i], data[j]);
+                matrix[i][j] = matrix[j][i] = r;
+            }
+        }
+        
+        return matrix;
+    }
+
+    std::vector<double> calculateEigenvalues(const std::vector<std::vector<double>>& matrix) {
+        // Simple power iteration method for demonstration
+        // In practice, use a more sophisticated method like QR algorithm
+        size_t n = matrix.size();
+        std::vector<double> eigenvalues(n);
+        
+        for (size_t i = 0; i < n; ++i) {
+            std::vector<double> eigenvector(n, 1.0);
+            double eigenvalue = powerIteration(matrix, eigenvector);
+            eigenvalues[i] = eigenvalue;
+        }
+        
+        std::sort(eigenvalues.begin(), eigenvalues.end(), std::greater<double>());
+        return eigenvalues;
+    }
+
+    double powerIteration(const std::vector<std::vector<double>>& matrix, std::vector<double>& vector) {
+        const int MAX_ITER = 100;
+        const double TOLERANCE = 1e-10;
+        double prevEigenvalue = 0.0;
+        
+        for (int iter = 0; iter < MAX_ITER; ++iter) {
+            // Matrix-vector multiplication
+            std::vector<double> newVector(vector.size(), 0.0);
+            for (size_t i = 0; i < matrix.size(); ++i) {
+                for (size_t j = 0; j < matrix[i].size(); ++j) {
+                    newVector[i] += matrix[i][j] * vector[j];
+                }
+            }
+            
+            // Normalize
+            double norm = sqrt(std::inner_product(newVector.begin(), newVector.end(), 
+                                                newVector.begin(), 0.0));
+            for (double& val : newVector) {
+                val /= norm;
+            }
+            
+            // Calculate eigenvalue
+            double eigenvalue = std::inner_product(newVector.begin(), newVector.end(), 
+                                                 vector.begin(), 0.0);
+            
+            // Check convergence
+            if (std::abs(eigenvalue - prevEigenvalue) < TOLERANCE) {
+                return eigenvalue;
+            }
+            
+            prevEigenvalue = eigenvalue;
+            vector = newVector;
+        }
+        
+        return prevEigenvalue;
     }
 };
 
